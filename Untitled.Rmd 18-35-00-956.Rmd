@@ -1,0 +1,145 @@
+---
+title: "Data Visualization"
+author: "Maliha"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#Data Visualizations created from DHS dataset about Maternal Tetanus in Myanmar
+#Dataset was cleaned and manipulated prior to using it for data visualization
+
+#Load libraries
+library(tidyverse)
+library(patchwork)
+```
+
+```{r}
+# Read data
+surveys2 <- readRDS("data/surveys2.rds")
+```
+
+
+```{r}
+#Density Plot
+ggplot(data = surveys2,
+       mapping = aes(x = age, fill = residence)) +
+  geom_density(alpha = 0.3)
+
+#Scatter Plot
+ggplot(data = surveys2,
+       aes(x = age, y = birth_order_last_child)) +
+  geom_point()
+
+#Boxplot
+ggplot(data = surveys2,
+       mapping = aes(x = education, y = birth_order_last_child)) +
+    geom_jitter(alpha = 0.3, color = "tomato") +
+    geom_boxplot(alpha = 0)
+
+#Boxplot for birth order based on the urban/rural residence with color variation
+ggplot(data = surveys2,
+       mapping = aes(x = education, y = birth_order_last_child)) +
+  geom_jitter(alpha = 0.2, aes(colour = residence)) +
+  geom_boxplot(alpha = 0)
+
+#Violin Plot
+ggplot(data = surveys2,
+       mapping = aes(x = education,
+                     y = birth_order_last_child,
+                     fill = education)) +
+  geom_violin()
+
+#Bar chart
+#display the distribution of wealth quantiles with distinct color for each quintile
+
+surveys2 |> 
+  ggplot(aes(x = wealth, fill = wealth)) +
+  geom_bar()
+
+#Horizontal bar chart
+surveys2 |> 
+  ggplot(aes(y = wealth, fill = wealth)) +
+  geom_bar()
+```
+```{r}
+#Visualizations using faceting
+#disaggregate data in each facet by tetanus vaccination status
+
+ggplot(surveys2, aes(y = wealth, fill = tetanus_vacc)) +
+  geom_bar() +
+  facet_wrap(facets =  vars(residence))
+
+#by age group
+ggplot(surveys2, aes(y = wealth, fill = tetanus_vacc)) +
+  geom_bar(position = "fill") +
+  facet_grid(cols = vars(agegrp))
+```
+```{r}
+#Using different pre-defined themes from ggplot2 in the code below:
+
+ggplot(surveys2, aes(y = wealth, fill = residence)) +
+  geom_bar() +
+  facet_wrap(vars(residence)) +
+  theme_light()
+
+#Some ways to improve the plot included
+#Make axis titles more informative and add a plot title
+#Increase the font size to the texts more readable. 
+#Change the facet label text 
+#x-axis texts are not visible
+#Add titles for axes and a plot title.
+#Vertical gridlines seems redundant so need to remove them.
+
+ggplot(surveys2, aes(y = wealth, fill = residence)) +
+  geom_bar() +
+  labs(x = "Number of mothers", y = "Wealth quintile",
+       title = "Wealth quintile distribution by urban and rural residence") +
+  facet_wrap(vars(residence)) +
+  theme_bw() +
+  theme(
+    strip.text = element_text(face = "italic"),
+    text = element_text(size = 14)
+  )
+
+#Since I want to apply the same theme to other plots, I saved the theme as a R object and pipe it to other ggplot2 objects
+
+my_theme <- theme_bw() +
+  theme(
+    strip.text = element_text(face = "italic"),
+    text = element_text(size = 16)
+  )
+```
+
+```{r}
+#Plot to show distribution of birth order of last child by education attainment faceted by residence.
+
+plot_2 <- ggplot(surveys2, aes(x = education, y = birth_order_last_child)) +
+  geom_jitter(alpha = 0.2, colour = "turquoise4") +
+  geom_boxplot(alpha = 0) +
+  labs(x = "Educational attainment",
+       y = NULL,
+       title = "Birth order of the last child by educational attainment") +
+  facet_wrap(vars(residence)) +
+  my_theme +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1),
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.y = element_blank()
+  )
+
+plot_2
+ggsave("figs/education_by_birth_order.png", plot_2, width = 15, height = 10)
+```
+
+```{r}
+
+```
+
+
+
